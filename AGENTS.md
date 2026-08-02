@@ -2,6 +2,35 @@
 
 This project is a website built with Edge Delivery Services in Adobe Experience Manager Sites as a Cloud Service. As an agent, follow the instructions in this file to deliver code based on Adobe's standards for fast, easy-to-author, and maintainable web experiences.
 
+---
+
+## Skills — read before you build
+
+This project keeps its best practices as **skills** under `skills/`. Each skill is a directory with a `SKILL.md`; `skills/README.md` is the single source of truth for lookup.
+
+**Before any task:** scan the "Load when…" column in `skills/README.md`; if a trigger matches your situation, read that skill in full before writing code. Load skills on demand when the trigger fires — not speculatively. After solving something non-obvious or being corrected, propose capturing it as a new/updated skill (see `skills/writing-skills`).
+
+## Rules (non-negotiable)
+
+These load-bearing rules are enforced by skills and by deterministic checkers. Skills extend them; they never override them.
+
+- **The Breakpoint Rule.** Use **`600px`, `900px`, `1200px`** as breakpoints, **all `min-width`** (or range syntax `width >= …`). Mobile-first — base styles target mobile, media queries layer up. **Never mix `min-width` and `max-width`.** Deviate only in an exceptional case you can justify. Enforced by `node tools/quality/breakpoint-check.mjs` — run after any CSS change. → `responsive-breakpoints`
+- **The Alt-Text Rule.** Every content image MUST have descriptive `alt`; decorative images MUST use `alt=""` (empty, not missing). Enforced by `npm run test:a11y <url>` (axe-core), which fails on missing alt. → `accessibility`
+- **The No-Build Rule.** Zero runtime dependencies, no build step, no frameworks. Native ES modules. Always use `.js` in imports. → `eds-code-conventions`
+- **The Untouchable-Files Rule.** Never modify `scripts/aem.js`, `head.html`, `package-lock.json`, or `node_modules/`. New utilities → `scripts/scripts.js`, never `aem.js`.
+- **The Block-Isolation Rule.** Every block CSS selector scoped to the block (`.{blockname} .part`); no `nth-child` for logic; avoid `!important` (use the `.full-width` escape hatch). → `eds-code-conventions`, `full-width-escape-hatch`
+- **The Security Rule.** Client-side code is public. Never commit secrets. Never use `eval`/`new Function`. Validate external input. Sanitize author/external HTML with DOMPurify before `innerHTML`. → `security`
+- **The Localization Rule.** No hard-coded user-facing strings — source from content or make data-driven. → `eds-code-conventions`
+- **Verify before claiming done.** Before writing "done"/"fixed"/"implemented", you MUST run the full quality gate and **paste the actual command output** for each — a completion claim without shown output is invalid:
+  1. `npm run lint`
+  2. `node tools/quality/breakpoint-check.mjs`
+  3. `npm run check:svg` — when any SVG under `icons/` was added or changed (flags oversized SVGs; rasterize with `npm run convert:svg` — see `svg-assets`).
+  4. `npm run test:a11y <url>` — for any UI/CSS change (needs the dev server up + deps installed; if it genuinely cannot run, say so explicitly and run the others).
+
+  Then confirm the change visually at `localhost:3000` and review the diff for dead code. If any check fails, fix it and re-run — this is a loop, not a one-shot report. Never assert a pass from memory. → `verify-before-claiming`, `quality-tooling`
+
+---
+
 ## Project Overview
 
 This project is based on the https://github.com/adobe/aem-boilerplate/ project and set up as a new project. You are expected to follow the coding style and practices established in the boilerplate, but add functionality according to the needs of the site currently developed.
@@ -57,7 +86,7 @@ The repository provides the basic structure, blocks, and configuration needed to
 - Follow Stylelint standard configuration
 - Use modern CSS features (CSS Grid, Flexbox, CSS Custom Properties)
 - Maintain responsive design principles
-  - Declare styles mobile first, use `min-width` media queries at 600px/900px/1200px for tablet and desktop
+  - Declare styles mobile first, use `min-width` media queries at 600px/900px/1200px for tablet and desktop. Never mix `min-width` and `max-width`. Enforced by `node tools/quality/breakpoint-check.mjs` (see The Breakpoint Rule and `responsive-breakpoints`).
 - Ensure all selectors are scoped to the block.
   - Bad: `.item-list`
   - Good: `.{blockname} .item-list`   
@@ -122,14 +151,18 @@ Pages are progressively loaded in three phases to maximize performance. This pro
 ### Performance
 - Follow AEM Edge Delivery performance best practices https://www.aem.live/developer/keeping-it-100
 - Images uploaded by authors are automatically optimized, all images and assets committed to git must be optimized and checked for size
+- **SVG assets (enforced):** keep committed SVGs small — `npm run check:svg` flags any `icons/*.svg` over budget (warn > 8KB, fail > 40KB). A large/illustrative SVG usually ships smaller and renders identically as a rasterized 2x PNG; convert with `npm run convert:svg <page.plain.html>`. Small UI glyphs stay as SVG. See `skills/svg-assets`.
 - Use lazy loading for non-critical resources (`lazy-styles.css` and `delayed.js`)
 - Minimize JavaScript bundle size by avoiding dependencies, using automatic code splitting provided by `/blocks/`
 
 ### Accessibility
-- Ensure proper heading hierarchy
-- Include alt text for images
-- Test with screen readers
-- Follow WCAG 2.1 AA guidelines
+Meet **WCAG 2.1 AA** (the a11y test enforces 2.0–2.2 A+AA). Full guidance in `skills/accessibility`.
+- **Alt text (enforced):** every content image has descriptive `alt`; decorative images use `alt=""` (empty, not missing). See The Alt-Text Rule.
+- Valid heading hierarchy — one `<h1>`, no skipped levels.
+- Full keyboard operation; visible `:focus-visible` on every interactive element (never bare `outline: none`). Design all interactive states, not just hover.
+- Contrast ≥ 4.5:1 (3:1 large text); UI/focus indicators ≥ 3:1. No color-only or hover-only cues. Real `<label>` on form fields (a placeholder is not a label).
+- Usable at 320px width and 200% zoom; touch targets ≥ 44×44px.
+- **Verify:** `npm run test:a11y <url>` (axe-core) before claiming any UI work done — fix all critical/serious violations.
 
 ## Deployment
 
@@ -168,11 +201,14 @@ With this information, you can construct URLs for the preview environment (same 
 
 ## Security Considerations
 
-- Never commit sensitive information (API keys, passwords)
-- Consider that everything you do is client-side code served on the public web
-- Follow Adobe security guidelines
-- Regularly update dependencies
-- Use the .hlxignore file to prevent files from being served (same format as .gitingnore)
+See The Security Rule above and `skills/security` for the full recipe.
+- Never commit sensitive information (API keys, passwords) — client-side code is public; there are no client-side secrets.
+- Never execute dynamically constructed code (`eval`, `new Function`).
+- Validate all external input (users, URL/query params, APIs) before use.
+- Sanitize any author/external HTML with DOMPurify before `innerHTML`; prefer `textContent` when markup isn't needed.
+- Consider that everything you do is client-side code served on the public web.
+- Follow Adobe security guidelines. Regularly update dependencies.
+- Use the .hlxignore file to prevent files from being served (same format as .gitignore).
 
 ## Contributing
 
