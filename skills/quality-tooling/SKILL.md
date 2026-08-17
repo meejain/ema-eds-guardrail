@@ -9,7 +9,7 @@ Checkable rules live in **scripts, not memory**. A rule with a threshold or an e
 
 | Checker | Command | What it enforces | Rule / skill |
 |---------|---------|------------------|--------------|
-| **breakpoint-check** | `node tools/quality/breakpoint-check.mjs [files]` | Media queries use only 600/900/1200 `min-width`; no `max-width`; no stray widths | The Breakpoint Rule · `responsive-breakpoints` |
+| **breakpoint-check** | `node tools/quality/breakpoint-check.mjs [files]` | Media queries use only the breakpoints recorded in `tools/quality/breakpoints.json` (the source site's set; defaults 600/900/1200), `min-width` only; no `max-width`; no stray widths | The Breakpoint Rule · `responsive-breakpoints` |
 | **a11y test (single page)** | `npm run test:a11y <url>` | WCAG 2.0–2.2 A+AA via axe-core against ONE rendered page; **fails on missing alt text**, contrast, ARIA, heading order | The Alt-Text Rule · `accessibility` |
 | **a11y sweep (all pages)** | `npm run test:a11y:all` | Same checks across EVERY URL in `tests/a11y/a11y.config.js`; clean per-page ✓/✘ report | The Alt-Text Rule · `accessibility` |
 | **a11y nav states** | `npm run test:a11y:nav [url]` | Opens the mobile hamburger + expands desktop nav, then runs axe — interactive states the page-load scan misses | `nav-header-eds` |

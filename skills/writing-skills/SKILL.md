@@ -8,7 +8,7 @@ A skill answers: "What do I wish I'd known 30 minutes ago?" It is a **recipe** (
 
 ## Non-negotiable rules
 1. **`name` frontmatter MUST match the directory name** exactly (lowercase, hyphens).
-2. **Generic skills MUST NOT hardcode project-specific values** — but this project's own conventions (600/900/1200 breakpoints, WCAG 2.1 AA) ARE the standard here, so state them plainly.
+2. **Generic skills MUST NOT hardcode project-specific values** — but this project's own conventions (WCAG 2.1 AA; the breakpoint set recorded in `tools/quality/breakpoints.json`, default 600/900/1200) ARE the standard here, so state them plainly.
 3. **Project-specific skills are prefixed `project-`**; unvalidated ones `draft-`.
 4. **Update `skills/README.md` with every skill change** — a skill not in the index may as well not exist.
 5. **Never edit AGENTS.md's Rules section when adding a skill** — skills extend the rules, never override them.

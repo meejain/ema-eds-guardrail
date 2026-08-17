@@ -9,6 +9,7 @@
     "lint": "npm run lint:js && npm run lint:css",
     "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix",
     "check:breakpoints": "node tools/quality/breakpoint-check.mjs",
+    "discover:breakpoints": "node tools/quality/breakpoint-discover.mjs",
     "check:svg": "node tools/quality/svg-size-check.mjs",
     "convert:svg": "node skills/svg-assets/convert-svg-to-png.mjs",
     "test:a11y": "node tests/a11y/run.mjs",

@@ -14,7 +14,11 @@ This project keeps its best practices as **skills** under `skills/`. Each skill 
 
 These load-bearing rules are enforced by skills and by deterministic checkers. Skills extend them; they never override them.
 
-- **The Breakpoint Rule.** Use **`600px`, `900px`, `1200px`** as breakpoints, **all `min-width`** (or range syntax `width >= …`). Mobile-first — base styles target mobile, media queries layer up. **Never mix `min-width` and `max-width`.** Deviate only in an exceptional case you can justify. Enforced by `node tools/quality/breakpoint-check.mjs` — run after any CSS change. → `responsive-breakpoints`
+- **The Breakpoint Rule (lift-and-shift).** This project migrates sites to Edge Delivery **quickly** — a lift-and-shift. So we **adopt the source site's existing breakpoints**, not a set of our own. **Decide once, per migration, up front — never re-litigate per task or per developer:**
+  1. At the start of a migration, discover the customer site's breakpoints from its CSS. Sample a **couple of representative pages, starting with the homepage**: `npm run discover:breakpoints -- https://customer-site.com https://customer-site.com/another-page --write`. Review the detected `min-width` values, then persist them.
+  2. This records the agreed set in **`tools/quality/breakpoints.json`** — the **single source of truth** for the whole repo. Every developer and the checker read it from there, so the decision is remembered and never repeated.
+  3. **If no breakpoints are accessible** (source CSS unavailable/unreadable), fall back to the boilerplate defaults **`600px`, `900px`, `1200px`** — which is exactly what `breakpoints.json` ships with.
+  Still **mobile-first, `min-width` only** (or range syntax `width >= …`): base styles target mobile, media queries layer up; **never mix `min-width` and `max-width`**. Whatever set is in `breakpoints.json` is enforced by `node tools/quality/breakpoint-check.mjs` — run after any CSS change. → `responsive-breakpoints`
 - **The Alt-Text Rule.** Every content image MUST have descriptive `alt`; decorative images MUST use `alt=""` (empty, not missing). Enforced by `npm run test:a11y <url>` (axe-core), which fails on missing alt. → `accessibility`
 - **The No-Build Rule.** Zero runtime dependencies, no build step, no frameworks. Native ES modules. Always use `.js` in imports. → `eds-code-conventions`
 - **The Untouchable-Files Rule.** Never modify `scripts/aem.js`, `head.html`, `package-lock.json`, or `node_modules/`. New utilities → `scripts/scripts.js`, never `aem.js`.
@@ -86,7 +90,7 @@ The repository provides the basic structure, blocks, and configuration needed to
 - Follow Stylelint standard configuration
 - Use modern CSS features (CSS Grid, Flexbox, CSS Custom Properties)
 - Maintain responsive design principles
-  - Declare styles mobile first, use `min-width` media queries at 600px/900px/1200px for tablet and desktop. Never mix `min-width` and `max-width`. Enforced by `node tools/quality/breakpoint-check.mjs` (see The Breakpoint Rule and `responsive-breakpoints`).
+  - Declare styles mobile first, use `min-width` media queries only. The breakpoint *values* are the source site's set recorded in `tools/quality/breakpoints.json` (defaults 600/900/1200 when none discovered). Never mix `min-width` and `max-width`. Enforced by `node tools/quality/breakpoint-check.mjs` (see The Breakpoint Rule and `responsive-breakpoints`).
 - Ensure all selectors are scoped to the block.
   - Bad: `.item-list`
   - Good: `.{blockname} .item-list`   
