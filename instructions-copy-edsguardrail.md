@@ -32,8 +32,14 @@ TARGET=/path/to/target-repo         # the fresh target clone
 # 1. Skills library (entire folder, includes README index + svg-assets converter)
 mkdir -p "$TARGET/skills"          && cp -R "$SOURCE/skills/."          "$TARGET/skills/"
 
-# 2. Deterministic checkers
+# 2. Deterministic checkers (incl. breakpoint-discover.mjs + breakpoints.json)
+#    CAUTION on RE-COPY: breakpoints.json holds the target's per-migration
+#    breakpoint decision. On a fresh target the master's 600/900/1200 default is
+#    correct. But if the target has ALREADY discovered its site's breakpoints, back
+#    it up first and restore it after, or this blind copy resets it to the default:
+#      cp "$TARGET/tools/quality/breakpoints.json" /tmp/bp.keep 2>/dev/null || true
 mkdir -p "$TARGET/tools/quality"   && cp -R "$SOURCE/tools/quality/."   "$TARGET/tools/quality/"
+#      cp /tmp/bp.keep "$TARGET/tools/quality/breakpoints.json" 2>/dev/null || true   # restore if it pre-existed
 
 # 3. Accessibility test suite (all modes: single / sweep / nav-states + reporter)
 mkdir -p "$TARGET/tests/a11y"      && cp -R "$SOURCE/tests/a11y/."      "$TARGET/tests/a11y/"
@@ -55,9 +61,14 @@ mkdir -p "$TARGET/.claude" && ln -sf ../skills "$TARGET/.claude/skills"
 
 ---
 
-## Step 3 — Adapt the one per-project value (agent)
+## Step 3 — Adapt the per-project values (agent)
 
 - `tests/a11y/a11y.config.js` → set `urls[]` to the TARGET's real pages (one per unique page/template). Inspect the target's `content/` or sitemap. If only a homepage exists, leave `['/']` and note it. *A page not listed is never swept.*
+- `tools/quality/breakpoints.json` → **the source site's breakpoints** (lift-and-shift; see The Breakpoint Rule in AGENTS.md). Decide once, up front, per migration: discover from a couple of the customer's pages (homepage first) and persist —
+  ```sh
+  npm run discover:breakpoints -- https://customer-site.com https://customer-site.com/another-page --write
+  ```
+  Review the detected `min-width` values before persisting. If the source CSS is inaccessible, leave the shipped default `600/900/1200`. This decision is recorded in `breakpoints.json` and reused by every developer + the checker — never re-litigated per task.
 
 Everything else is generic and needs no change.
 
@@ -68,7 +79,9 @@ Everything else is generic and needs no change.
 Run from `TARGET`:
 ```sh
 node -e "require('./package.json')"                  # valid JSON
+node -e "require('./tools/quality/breakpoints.json')"  # valid JSON (breakpoint record)
 node --check tools/quality/breakpoint-check.mjs
+node --check tools/quality/breakpoint-discover.mjs
 node --check tools/quality/svg-size-check.mjs
 node tools/quality/breakpoint-check.mjs              # passes, or lists real violations
 node tools/quality/svg-size-check.mjs                # passes
