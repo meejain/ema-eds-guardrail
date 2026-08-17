@@ -6,7 +6,10 @@
  *   - uses a `max-width` media query (no mixing min/max — mobile-first only), or
  *   - uses a min-width / range media query at a width outside the sanctioned set.
  *
- * Sanctioned breakpoints: 600px, 900px, 1200px (all min-width / `width >= …`).
+ * This is a LIFT-AND-SHIFT migration project: the sanctioned breakpoints are NOT
+ * hardcoded here — they are read from tools/quality/breakpoints.json, which records
+ * the SOURCE SITE's breakpoints (decided once per migration). If that file is missing
+ * or malformed, we fall back to the boilerplate defaults 600/900/1200.
  * Mirrors https://www.aem.live/docs/dev-collab-and-good-practices
  *
  * Usage:
@@ -16,8 +19,27 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-const ALLOWED = new Set([600, 900, 1200]);
 const ROOT = process.cwd();
+const DEFAULT_BREAKPOINTS = [600, 900, 1200];
+
+function loadBreakpoints() {
+  try {
+    const raw = readFileSync(join(ROOT, 'tools/quality/breakpoints.json'), 'utf8');
+    const parsed = JSON.parse(raw);
+    const bps = parsed.breakpoints;
+    if (Array.isArray(bps) && bps.length && bps.every((n) => Number.isFinite(n))) {
+      return { list: bps.map(Number), source: parsed.source || 'breakpoints.json' };
+    }
+    console.warn('⚠ breakpoints.json has no valid "breakpoints" array — using defaults 600/900/1200.');
+  } catch {
+    console.warn('⚠ tools/quality/breakpoints.json not found — using defaults 600/900/1200.');
+  }
+  return { list: DEFAULT_BREAKPOINTS, source: 'default' };
+}
+
+const { list: BREAKPOINTS, source: BP_SOURCE } = loadBreakpoints();
+const ALLOWED = new Set(BREAKPOINTS);
+const SET_STR = `{${BREAKPOINTS.join(', ')}}`;
 
 function walk(dir, out = []) {
   let entries;
@@ -74,7 +96,7 @@ for (const file of collectFiles()) {
     for (const m of widthMatches) {
       const px = Number(m[1]);
       if (!ALLOWED.has(px)) {
-        violations.push({ rel, ln, msg: `breakpoint ${px}px not in {600, 900, 1200}`, code: line.trim() });
+        violations.push({ rel, ln, msg: `breakpoint ${px}px not in ${SET_STR}`, code: line.trim() });
       }
     }
   });
@@ -90,4 +112,4 @@ if (violations.length) {
   process.exit(1);
 }
 
-console.log('✓ Breakpoint check passed (600/900/1200 min-width only).');
+console.log(`✓ Breakpoint check passed (${BREAKPOINTS.join('/')} min-width only; source: ${BP_SOURCE}).`);

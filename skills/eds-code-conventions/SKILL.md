@@ -16,7 +16,7 @@ Write code that matches the boilerplate: vanilla ES modules, native CSS, no buil
 - **Scope every selector to the block** — `.{blockname} .part`, never a bare `.part`. Avoid `{blockname}-container` / `{blockname}-wrapper` (those name sections). <!-- rule:css-scope -->
 - **No positional selectors** (`nth-child`) for logic — add semantic classes in `decorate()`.
 - **No `!important`** — fix specificity properly; use a `.full-width` wrapper class for full-bleed instead of forcing widths.
-- **Mobile-first, 600/900/1200 `min-width` only** — see `responsive-breakpoints` (enforced by a checker).
+- **Mobile-first, `min-width` only** — breakpoint values come from the source site's set in `tools/quality/breakpoints.json` (defaults 600/900/1200); see `responsive-breakpoints` (enforced by a checker).
 - **Tokens over literals** — reuse `var(--token)` from `styles.css` for colors, spacing, radii, type; add a new `:root` token when a value recurs for a role.
 
 ## Performance (EDS handles most — these still bite)

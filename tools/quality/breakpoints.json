@@ -1,0 +1,8 @@
+{
+  "$comment": "SINGLE SOURCE OF TRUTH for this project's responsive breakpoints. This project is a LIFT-AND-SHIFT migration to AEM Edge Delivery Services — we adopt the SOURCE SITE's existing breakpoints rather than imposing our own. Decide this ONCE at the start of a migration (see AGENTS.md → The Breakpoint Rule and skills/responsive-breakpoints), record it here, and every developer + the checker (tools/quality/breakpoint-check.mjs) reuses it. Do NOT re-litigate per task.",
+  "breakpoints": [600, 900, 1200],
+  "source": "default",
+  "sampledPages": [],
+  "decidedOn": null,
+  "notes": "Fallback defaults (600/900/1200 min-width). Replace via the discovery step when migrating a real site: sample the homepage + a couple of other pages' CSS, extract the min-width breakpoints actually used, and record them here with source set to the site URL."
+}
