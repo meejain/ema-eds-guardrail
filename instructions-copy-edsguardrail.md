@@ -54,10 +54,15 @@ cp "$SOURCE/package.json" "$TARGET/package.json"
 
 # 6. Native skill discovery
 mkdir -p "$TARGET/.claude" && ln -sf ../skills "$TARGET/.claude/skills"
+
+# 7. Migration-log seed template (copy verbatim), then seed the LIVE log only if absent
+#    (never clobber an in-progress MIGRATION.md — the live log is project content).
+cp "$SOURCE/MIGRATION.template.md" "$TARGET/MIGRATION.template.md"
+cp -n "$SOURCE/MIGRATION.template.md" "$TARGET/MIGRATION.md" 2>/dev/null || true
 ```
 
 **Do NOT copy** (these are project content or master-repo meta, not the guardrail layer):
-`content/`, `blocks/`, `styles/`, `icons/`, `fonts/`, `reference/`, `templates/`, `.migration/`, `PROJECT-*.md`, `favicon.ico`, and any `instructions-copy-edsguardrail.md` / `README.md` describing the master itself.
+`content/`, `blocks/`, `styles/`, `icons/`, `fonts/`, `reference/`, `templates/`, `.migration/`, `PROJECT-*.md`, the live `MIGRATION.md` (project-specific — only `MIGRATION.template.md` is shared), `favicon.ico`, and any `instructions-copy-edsguardrail.md` / `README.md` describing the master itself.
 
 ---
 
@@ -109,7 +114,7 @@ Tell the human:
 
 | Copied verbatim (blind) | Adapt | Never copied | Human-only |
 |---|---|---|---|
-| `skills/`, `tools/quality/`, `tests/a11y/`, `.github/workflows/a11y.yml`, `AGENTS.md`, `CLAUDE.md`, `package.json`, `.claude/skills` symlink | `tests/a11y/a11y.config.js` `urls[]` | `content/`, `blocks/`, `styles/`, project assets, `PROJECT-*.md`, the master's own README/runbook | `npm install`, commit/push, branch protection |
+| `skills/`, `tools/quality/`, `tests/a11y/`, `.github/workflows/a11y.yml`, `AGENTS.md`, `CLAUDE.md`, `package.json`, `.claude/skills` symlink, `MIGRATION.template.md` (+ seed `MIGRATION.md` if absent) | `tests/a11y/a11y.config.js` `urls[]`, `tools/quality/breakpoints.json`, the seeded `MIGRATION.md` (fill in per project) | `content/`, `blocks/`, `styles/`, project assets, `PROJECT-*.md`, the live `MIGRATION.md`, the master's own README/runbook | `npm install`, commit/push, branch protection |
 
 ---
 

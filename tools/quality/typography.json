@@ -1,0 +1,8 @@
+{
+  "$comment": "SINGLE SOURCE OF TRUTH for the source site's TYPE SCALE (lift-and-shift: adopted from the source site). Discover once at the start of a migration with `npm run discover:typography -- https://source-site --write`, review, persist. Records, per sampled viewport width, the computed font-size / line-height / weight / family of h1..h6 and body text, plus the source @font-face declarations. The checker (tools/quality/typography-check.mjs / `npm run check:typography`) loads the MIGRATED pages at each breakpoint and FAILS if computed values drift beyond tolerance. See AGENTS.md → The Typography Rule and skills/typography-system. Empty scale = not yet discovered → the checker skips (never fails a fresh project).",
+  "source": "default",
+  "tolerancePx": 1.5,
+  "toleranceRatio": 0.06,
+  "fonts": [],
+  "scale": {}
+}
